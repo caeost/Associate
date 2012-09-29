@@ -54,6 +54,7 @@ var createNewPrime = function() {
     return p;
 };
 
+//lifted and slightly modified from underscore
 var intersection = function(array) {
     var rest = __.rest(array);
     array = __.first(array);
