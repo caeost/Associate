@@ -1,4 +1,4 @@
-var __ = require("./underscore.js");
+var __ = require("./underscore/underscore.js");
 
 var currentPrimes = [{2: 0}];
 var list = [];
@@ -12,24 +12,23 @@ exports.getSubPrimes = function(number) {
         var count = 0, breaker = true, dumb = {}, prime = __.keys(obj);
         while(breaker){
             var temp = number / prime;
-            console.log("temp: " + temp)
             if(temp % 1 === 0){
                 number = temp;
                 count++;
             } else {
                 breaker = false;
             }
-            console.log("break: " + breaker + " number: " + number + " count: " + count)
         }
         dumb[prime] = count;
         return dumb;
     });
 };
 
-var createNewPrime = function() {
+exports.createNewPrime = function() {
     //if necessary create a new larger prime to deal with new set, cache all primes for speed
     // current prime number
-    var prime = __.last(currentPrimes).keys;
+    var dumb = {}, 
+        prime = __.chain(currentPrimes).last().keys().value();
 
     // return true if NUM is prime
     var isPrime = function(num) {
@@ -46,14 +45,15 @@ var createNewPrime = function() {
     };
 
     prime++;
+    console.log(prime)
     while (!isPrime(prime)) {
         prime++;
+        console.log("prime: " + prime)
     }
-    var p = {};
-    p[prime] = 0;
+    dumb[prime] = 0;
 
-    currentPrimes.push(p);
-    return p;
+    currentPrimes.push(dumb);
+    return dumb;
 };
 
 //lifted and slightly modified from underscore
