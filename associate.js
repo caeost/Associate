@@ -5,7 +5,7 @@ var list = [];
 var size = 0;
 var threshold = 0;
 
-exports.getSubPrimes = function(number) {
+var getSubPrimes = function(number) {
     //operates on the algorithm whereby for all currently existing primes starting from 2 we divide as many times as
     //we can per prime and keep track of these in order to return a list of primes and their number of occurences
     return __.map(currentPrimes, function(obj){
