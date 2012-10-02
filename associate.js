@@ -24,7 +24,7 @@ exports.getSubPrimes = function(number) {
     });
 };
 
-exports.createNewPrime = function() {
+var createNewPrime = function() {
     //if necessary create a new larger prime to deal with new set, cache all primes for speed
     // current prime number
     var dumb = {}, 
@@ -120,7 +120,6 @@ exports.getAssociates = function(array, junctness ,feather) {
 };
 
 exports.generate = function(object, hints, hardness){
-    object.theid = 1;
     if(hints) {
         this.associate(hints + object, hardness || 1);
     }
