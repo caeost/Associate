@@ -45,10 +45,8 @@ exports.createNewPrime = function() {
     };
 
     prime++;
-    console.log(prime)
     while (!isPrime(prime)) {
         prime++;
-        console.log("prime: " + prime)
     }
     dumb[prime] = 0;
 
