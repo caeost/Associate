@@ -73,7 +73,10 @@ exports.associate =  function(array, hardness)  {
     var totalSubs = [];
 
     __.each(array, function(number){
-        totalSubs.push(__.keys(getSubPrimes(number)));
+        totalSubs.push(__.map(getSubPrimes(number), function(obj){
+            return __.keys(obj);
+          })
+        );
     });
 
     totalSubs = intersection(totalSubs);
