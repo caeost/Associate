@@ -8,16 +8,18 @@ var threshold = 0;
 exports.getSubPrimes = function(number) {
     //operates on the algorithm whereby for all currently existing primes starting from 2 we divide as many times as
     //we can per prime and keep track of these in order to return a list of primes and their number of occurences
-    return __.map(currentPrimes, function(percent, prime){
-        var count = 0, breaker = true, dumb = {};
+    return __.map(currentPrimes, function(obj){
+        var count = 0, breaker = true, dumb = {}, prime = __.keys(obj);
         while(breaker){
             var temp = number / prime;
+            console.log("temp: " + temp)
             if(temp % 1 === 0){
                 number = temp;
                 count++;
             } else {
                 breaker = false;
             }
+            console.log("break: " + breaker + " number: " + number + " count: " + count)
         }
         dumb[prime] = count;
         return dumb;
