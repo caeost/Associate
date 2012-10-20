@@ -5,7 +5,7 @@ var list = [];
 var size = 0;
 var threshold = 0;
 
-var getSubPrimes = function(number) {
+exports.getSubPrimes = function(number) {
     //operates on the algorithm whereby for all currently existing primes starting from 2 we divide as many times as
     //we can per prime and keep track of these in order to return a list of primes and their number of occurences
     return __.map(currentPrimes, function(obj){
@@ -19,7 +19,7 @@ var getSubPrimes = function(number) {
                 breaker = false;
             }
         }
-        dumb[prime] = count;
+        if(count > 0) dumb[prime] = count;
         return dumb;
     });
 };
@@ -69,37 +69,33 @@ exports.associate =  function(array, hardness)  {
     //given array of numbers tests them for already existant common subprimes, amplifying those subprimes if existant
     //if not generates a whole new subprime to assign to the set, subprimes assigned or amplified MUST serve to
     //differntiate the set. Hardness is optional and allows external setting of how much linkage should be created
-    hardness = hardness || 1;
-    var totalSubs = [];
+    var totalSubs = [], mult = hardness || 1;
 
-    __.each(array, function(number){
-        totalSubs.push(__.map(getSubPrimes(number), function(obj){
-            return __.keys(obj);
-          })
-        );
+    __.each(array, function(object){
+        var number = object.ass || 1;
+        totalSubs.push(getSubPrimes(number));
     });
 
     totalSubs = intersection(totalSubs);
 
-    if(totalSubs.length > 0) {
-        var percentPrimeTotal = currentPrimes[totalSubs[0]];
-        var percentCurrentTotal = size / array.length;
+    __.filter(totalSubs, function(prime) {
+      var percentPrimeTotal = currentPrimes[prime];
+      var percentCurrentTotal = size / array.length;
+      var difference = percentPrimeTotal / percentCurrentTotal;
+      return difference < threshold;
+    });
 
-        var difference = percentPrimeTotal / percentCurrentTotal;
-        if(difference > threshold) {
-            var mult = __.reduce(totalSubs, function(memo, sub){
-                return memo * sub;
-            }, hardness);
-            return __.map(array, function(number){
-                return number * mult;
-            });
-        }
-    }else{
-        var p = createNewPrime() * hardness;
-        return __.map(array, function(number){
-            return number * p;
-        });
+    if(totalSubs.length > 0) {
+      mult = __.reduce(totalSubs, function(memo, sub){
+        return memo * sub;
+      }, mult);
+    } else {
+        mult = createNewPrime() * mult;
     }
+    return __.map(array, function(obj){
+                obj.ass = number * mult;
+                return obj;
+            });
 };
 
 exports.getAssociates = function(array, junctness ,feather) {
