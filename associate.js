@@ -92,6 +92,7 @@ exports.associate =  function(array, hardness)  {
     } else {
         mult = createNewPrime() * mult;
     }
+
     return __.map(array, function(obj){
                 obj.ass = number * mult;
                 return obj;
@@ -101,10 +102,19 @@ exports.associate =  function(array, hardness)  {
 exports.getAssociates = function(array, junctness ,feather) {
     //given a list (can be list of one) fetches associated numbers, either disjunct or conjunct with a certain feather
     //this would be compared to an internally held list of the numbers
+    
+    if(!__.isArray(array)) {
+      _arr = array;
+      array = [];
+      array[0] = _arr;
+    }
+
     var totalSubs = [];
 
-    __.each(array, function(number){
-        totalSubs.push(__.keys(getSubPrimes(number)));
+    __.each(array, function(object){
+        var number = object.ass 
+        if(number == null) return;
+        totalSubs.push(getSubPrimes(number));
     });
 
     if(junctness === "disjunct" ) {
@@ -118,6 +128,7 @@ exports.getAssociates = function(array, junctness ,feather) {
     });
 };
 
+//what does this do??
 exports.generate = function(object, hints, hardness){
     if(hints) {
         this.associate(hints + object, hardness || 1);
