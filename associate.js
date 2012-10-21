@@ -119,14 +119,11 @@ exports.associate =  function(array, hardness)  {
       }, 1);
     } else {
         var newPrime = createNewPrime();
-        console.log("np:" + newPrime);
         mult = Math.pow(newPrime, mult);
-        console.log("hard: " + hardness + " mult: " + mult);
         currentPrimes[newPrime] = array.length;
     }
 
     return __.map(array, function(obj){
-                console.log(mult);
                 obj.ass = (obj.ass || 1) * mult;
                 return obj;
             });
