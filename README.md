@@ -8,13 +8,13 @@ run node in your command prompt.
 
 *require* path to associate file e.g. if you are in the associate folder:
 
-carl-mini:associate carlostberg$ node
-> var ass = require("./associate.js");
-> ass
-{ getSubPrimes: [Function],
-  associate: [Function],
-  getAssociates: [Function],
-  generate: [Function] }
-> 
+  carl-mini:associate carlostberg$ node
+  > var ass = require("./associate.js");
+  > ass
+  { getSubPrimes: [Function],
+    associate: [Function],
+    getAssociates: [Function],
+    generate: [Function] }
+  > 
 
 Do stuff (most stuff doesn't work :< )
