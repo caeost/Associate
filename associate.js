@@ -76,7 +76,7 @@ var intersection = function(array) {
 };
 
 var allUndefined = function(array) {
-  return _.all(array, function(val) {
+  return __.all(array, function(val) {
     return val === undefined;
   });
 };
