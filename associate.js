@@ -7,10 +7,10 @@ var list = [];
 var size = 0;
 var threshold = 0;
 
-var getSubPrimes = function(number) {
+exports.getSubPrimes = function(number) {
     //operates on the algorithm whereby for all currently existing primes starting from 2 we divide as many times as
     //we can per prime and keep track of these in order to return a list of primes and their number of occurences
-    return __.reduce(currentPrimes, function(memo, occurence, prime){
+    return __.map(currentPrimes, function(occurence, prime){
         if(occurence !== undefined) {
           var count = 0, breaker = true;
           while(breaker){
@@ -22,19 +22,20 @@ var getSubPrimes = function(number) {
                   breaker = false;
               }
           }
-          if(count > 0) return memo[prime] = count;
+          if(count > 0) return count;
         }
-        return memo;
-    },[]);
+        return undefined;
+    });
 };
 
 
 
-var createNewPrime = function() {
+exports.createNewPrime = function() {
     //if necessary create a new larger prime to deal with new set, cache all primes for speed
     // current prime number
     var dumb = {}, 
         prime = currentPrimes.length - 1;
+    console.log(prime);
 
     // return true if NUM is prime
     var isPrime = function(num) {
@@ -55,7 +56,7 @@ var createNewPrime = function() {
         prime++;
     }
 
-    currentPrimes[prime] = count;
+    currentPrimes[prime] = 0;
     return prime;
 };
 
