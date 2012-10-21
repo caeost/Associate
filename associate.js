@@ -1,6 +1,8 @@
 var __ = require("./underscore/underscore.js");
 
-var currentPrimes = [{2: 0}];
+var currentPrimes = [];
+    currentPrimes[2] = 0;
+
 var list = [];
 var size = 0;
 var threshold = 0;
@@ -8,27 +10,31 @@ var threshold = 0;
 exports.getSubPrimes = function(number) {
     //operates on the algorithm whereby for all currently existing primes starting from 2 we divide as many times as
     //we can per prime and keep track of these in order to return a list of primes and their number of occurences
-    return __.map(currentPrimes, function(obj){
-        var count = 0, breaker = true, dumb = {}, prime = __.keys(obj);
-        while(breaker){
-            var temp = number / prime;
-            if(temp % 1 === 0){
-                number = temp;
-                count++;
-            } else {
-                breaker = false;
-            }
+    return __.reduce(currentPrimes, function(memo, occurence, prime){
+        if(occurence !== undefined) {
+          var count = 0, breaker = true;
+          while(breaker){
+              var temp = number / prime;
+              if(temp % 1 === 0){
+                  number = temp;
+                  count++;
+              } else {
+                  breaker = false;
+              }
+          }
+          if(count > 0) return memo[prime] = count;
         }
-        if(count > 0) dumb[prime] = count;
-        return dumb;
-    });
+        return memo;
+    },[]);
 };
+
+
 
 var createNewPrime = function() {
     //if necessary create a new larger prime to deal with new set, cache all primes for speed
     // current prime number
     var dumb = {}, 
-        prime = __.chain(currentPrimes).last().keys().value();
+        prime = currentPrimes.length - 1;
 
     // return true if NUM is prime
     var isPrime = function(num) {
@@ -48,20 +54,24 @@ var createNewPrime = function() {
     while (!isPrime(prime)) {
         prime++;
     }
-    dumb[prime] = 0;
 
-    currentPrimes.push(dumb);
-    return dumb;
+    currentPrimes[prime] = count;
+    return prime;
 };
 
 //lifted and slightly modified from underscore
 var intersection = function(array) {
     var rest = __.rest(array);
     array = __.first(array);
-    return __.filter(__.uniq(array), function(item) {
-        return __.every(rest, function(other) {
-            return __.indexOf(other, item) >= 0;
-        });
+    return __.map(array, function(val, index) {
+        var runningTotal = 0;
+        __.each(rest, function(other) {
+          runningTotal += other[index];
+        }
+        if(runningTotal) {
+          return runningTotal;
+        }
+        return undefined;
     });
 };
 
@@ -73,28 +83,37 @@ exports.associate =  function(array, hardness)  {
 
     __.each(array, function(object){
         var number = object.ass || 1;
+        if(!object.ass) {
+          size++;
+          return;
+        }
         totalSubs.push(getSubPrimes(number));
     });
 
     totalSubs = intersection(totalSubs);
 
-    __.filter(totalSubs, function(prime) {
+    totalSubs = __.map(totalSubs, function(occurence, prime) {
       var percentPrimeTotal = currentPrimes[prime];
       var percentCurrentTotal = size / array.length;
       var difference = percentPrimeTotal / percentCurrentTotal;
-      return difference < threshold;
+      if(difference < threshold) {
+        return occurence;
+      }
+      return undefined;
     });
 
     if(totalSubs.length > 0) {
-      mult = __.reduce(totalSubs, function(memo, sub){
-        return memo * sub;
+      mult = __.reduce(totalSubs, function(memo, occurence, prime){
+        return memo * prime;
       }, mult);
     } else {
-        mult = createNewPrime() * mult;
+        var newPrime = createNewPrime();
+        mult = newPrime * mult;
+        currentPrimes[newPrime] = array.length;
     }
 
     return __.map(array, function(obj){
-                obj.ass = number * mult;
+                obj.ass = (obj.ass || 1) * mult;
                 return obj;
             });
 };
