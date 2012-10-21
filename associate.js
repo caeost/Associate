@@ -7,7 +7,7 @@ var list = [];
 var size = 0;
 var threshold = 0;
 
-exports.getSubPrimes = function(number) {
+var getSubPrimes = function(number) {
     //operates on the algorithm whereby for all currently existing primes starting from 2 we divide as many times as
     //we can per prime and keep track of these in order to return a list of primes and their number of occurences
     return __.reduce(currentPrimes, function(memo, occurence, prime){
@@ -38,11 +38,11 @@ var createNewPrime = function() {
 
     // return true if NUM is prime
     var isPrime = function(num) {
-        var x, result = true;
+        var x, result = true, sqrt;
         if (num % 2 === 0) {
             return false;
         } else {
-            var sqrt = Math.sqrt(num);
+            sqrt = Math.sqrt(num);
             for (x = 3; x <= sqrt; x += 2) {
                 result = num % x !== 0;
             }
@@ -75,6 +75,12 @@ var intersection = function(array) {
     });
 };
 
+var allUndefined = function(array) {
+  return _.all(array, function(val) {
+    return val === undefined;
+  });
+};
+
 exports.associate =  function(array, hardness)  {
     //given array of numbers tests them for already existant common subprimes, amplifying those subprimes if existant
     //if not generates a whole new subprime to assign to the set, subprimes assigned or amplified MUST serve to
@@ -102,9 +108,12 @@ exports.associate =  function(array, hardness)  {
       return undefined;
     });
 
-    if(totalSubs.length > 0) {
+    if(!allUndefined(totalSubs)) {
       mult = __.reduce(totalSubs, function(memo, occurence, prime){
-        return memo * prime;
+        if(occurence) {
+          return memo * prime;
+        }
+        return memo;
       }, mult);
     } else {
         var newPrime = createNewPrime();
