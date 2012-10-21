@@ -30,12 +30,11 @@ exports.getSubPrimes = function(number) {
 
 
 
-exports.createNewPrime = function() {
+var createNewPrime = function() {
     //if necessary create a new larger prime to deal with new set, cache all primes for speed
     // current prime number
     var dumb = {}, 
         prime = currentPrimes.length - 1;
-    console.log(prime);
 
     // return true if NUM is prime
     var isPrime = function(num) {
@@ -97,19 +96,21 @@ exports.associate =  function(array, hardness)  {
         totalSubs.push(getSubPrimes(number));
     });
 
-    totalSubs = intersection(totalSubs);
+    if(totalSubs.length) {
+      totalSubs = intersection(totalSubs);
 
-    totalSubs = __.map(totalSubs, function(occurence, prime) {
-      var percentPrimeTotal = currentPrimes[prime];
-      var percentCurrentTotal = size / array.length;
-      var difference = percentPrimeTotal / percentCurrentTotal;
-      if(difference < threshold) {
-        return occurence;
-      }
-      return undefined;
-    });
+      totalSubs = __.map(totalSubs, function(occurence, prime) {
+        var percentPrimeTotal = currentPrimes[prime];
+        var percentCurrentTotal = size / array.length;
+        var difference = percentPrimeTotal / percentCurrentTotal;
+        if(difference < threshold) {
+          return occurence;
+        }
+        return undefined;
+      });
+    }
 
-    if(!allUndefined(totalSubs)) {
+    if(totalSubs.length && !allUndefined(totalSubs)) {
       mult = __.reduce(totalSubs, function(memo, occurence, prime){
         if(occurence) {
           return memo * Math.pow(prime,mult);
@@ -118,11 +119,14 @@ exports.associate =  function(array, hardness)  {
       }, 1);
     } else {
         var newPrime = createNewPrime();
-        mult = Math.pow(newPrime,hardness);
+        console.log("np:" + newPrime);
+        mult = Math.pow(newPrime, mult);
+        console.log("hard: " + hardness + " mult: " + mult);
         currentPrimes[newPrime] = array.length;
     }
 
     return __.map(array, function(obj){
+                console.log(mult);
                 obj.ass = (obj.ass || 1) * mult;
                 return obj;
             });
