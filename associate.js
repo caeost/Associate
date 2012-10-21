@@ -111,13 +111,13 @@ exports.associate =  function(array, hardness)  {
     if(!allUndefined(totalSubs)) {
       mult = __.reduce(totalSubs, function(memo, occurence, prime){
         if(occurence) {
-          return memo * prime;
+          return memo * Math.pow(prime,mult);
         }
         return memo;
-      }, mult);
+      }, 1);
     } else {
         var newPrime = createNewPrime();
-        mult = newPrime * mult;
+        mult = Math.pow(newPrime,hardness);
         currentPrimes[newPrime] = array.length;
     }
 
@@ -163,4 +163,8 @@ exports.generate = function(object, hints, hardness){
     }
     size++;
     return object;
+};
+
+exports.test = function() {
+
 };
