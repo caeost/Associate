@@ -67,7 +67,7 @@ var intersection = function(array) {
         var runningTotal = 0;
         __.each(rest, function(other) {
           runningTotal += other[index];
-        }
+        });
         if(runningTotal) {
           return runningTotal;
         }
