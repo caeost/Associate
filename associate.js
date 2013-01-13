@@ -134,6 +134,13 @@ exports.setCollectionName = function(name) {
     collectionName = name;
 };
 
+var databaseName = 'associate';
+
+exports.setCollectionName = function(name) {
+    databaseName = name;
+};
+
+
 //in progress
 exports.getAssociates = function(array, options) {
     //given a list (can be list of one) fetches associated numbers, either disjunct or conjunct with a certain feather
@@ -141,6 +148,7 @@ exports.getAssociates = function(array, options) {
     options = options || {};
     var collection = options.collection;
     var junctness = options.junctness;
+    var database = options.database;
     //unused
     var feather = options.feather;
 
@@ -170,7 +178,7 @@ exports.getAssociates = function(array, options) {
 
     //this needs to sort and be faster and not duplicate push
     _.each(totalSubs, function(assNumber) {
-      MongoClient.connect("mongodb://localhost:27017/associateDB", function(err, db) {
+      MongoClient.connect(database || databaseName || "mongodb://localhost:27017/associateDb", function(err, db) {
         if(err) return console.dir(err);
 
         var stream = collection.find({_ass : {$mod: {assNumber, 0}} }).stream();
