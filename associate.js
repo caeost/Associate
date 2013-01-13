@@ -181,7 +181,7 @@ exports.getAssociates = function(array, options) {
       MongoClient.connect(database || databaseName || "mongodb://localhost:27017/associateDb", function(err, db) {
         if(err) return console.dir(err);
 
-        var stream = collection.find({_ass : {$mod: {assNumber, 0}} }).stream();
+        var stream = collection.find({_ass : {$mod: [assNumber, 0]} }).stream();
 
         stream.on("data", function(item) {
           result.push(item);
