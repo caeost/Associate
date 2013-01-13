@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/caeost/Associate.png?branch=master)](https://travis-ci.org/caeost/Associate)
+
 very WIP but i think its cool, hope to work more on it.
 
 IF THE CODE CURRENTLY WORKS YOU CAN RUN IT LIKE THIS (this is a big if):
