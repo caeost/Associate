@@ -136,7 +136,7 @@ exports.setCollectionName = function(name) {
 
 var databaseName = 'associate';
 
-exports.setCollectionName = function(name) {
+exports.setDatabaseName = function(name) {
     databaseName = name;
 };
 
