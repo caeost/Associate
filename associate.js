@@ -1,4 +1,5 @@
 var __ = require("./underscore/underscore.js");
+var MongoClient = require('mongodb').MongoClient;
 
 var currentPrimes = [];
     currentPrimes[2] = 0;
@@ -7,10 +8,10 @@ var list = [];
 var size = 0;
 var threshold = 0;
 
-exports.getSubPrimes = function(number) {
+var getSubPrimes = function(number) {
     //operates on the algorithm whereby for all currently existing primes starting from 2 we divide as many times as
     //we can per prime and keep track of these in order to return a list of primes and their number of occurences
-    return __.map(currentPrimes, function(occurence, prime){
+    return __.reduce(currentPrimes, function(memo, occurence, prime){
         if(occurence !== undefined) {
           var count = 0, breaker = true;
           while(breaker){
@@ -22,10 +23,10 @@ exports.getSubPrimes = function(number) {
                   breaker = false;
               }
           }
-          if(count > 0) return count;
+          if(count > 0) return memo[prime] = count;
         }
-        return undefined;
-    });
+        return memo;
+    },[]);
 };
 
 
@@ -55,7 +56,7 @@ var createNewPrime = function() {
         prime++;
     }
 
-    currentPrimes[prime] = 0;
+    currentPrimes[prime] = count;
     return prime;
 };
 
@@ -96,30 +97,28 @@ exports.associate =  function(array, hardness)  {
         totalSubs.push(getSubPrimes(number));
     });
 
-    if(totalSubs.length) {
-      totalSubs = intersection(totalSubs);
+    totalSubs = intersection(totalSubs);
 
-      totalSubs = __.map(totalSubs, function(occurence, prime) {
-        var percentPrimeTotal = currentPrimes[prime];
-        var percentCurrentTotal = size / array.length;
-        var difference = percentPrimeTotal / percentCurrentTotal;
-        if(difference < threshold) {
-          return occurence;
-        }
-        return undefined;
-      });
-    }
+    totalSubs = __.map(totalSubs, function(occurence, prime) {
+      var percentPrimeTotal = currentPrimes[prime];
+      var percentCurrentTotal = size / array.length;
+      var difference = percentPrimeTotal / percentCurrentTotal;
+      if(difference < threshold) {
+        return occurence;
+      }
+      return undefined;
+    });
 
-    if(totalSubs.length && !allUndefined(totalSubs)) {
+    if(!allUndefined(totalSubs)) {
       mult = __.reduce(totalSubs, function(memo, occurence, prime){
         if(occurence) {
-          return memo * Math.pow(prime,mult);
+          return memo * prime;
         }
         return memo;
-      }, 1);
+      }, mult);
     } else {
         var newPrime = createNewPrime();
-        mult = Math.pow(newPrime, mult);
+        mult = newPrime * mult;
         currentPrimes[newPrime] = array.length;
     }
 
@@ -129,33 +128,63 @@ exports.associate =  function(array, hardness)  {
             });
 };
 
-exports.getAssociates = function(array, junctness ,feather) {
+var collectionName = 'test';
+
+exports.setCollectionName = function(name) {
+    collectionName = name;
+};
+
+//in progress
+exports.getAssociates = function(array, options) {
     //given a list (can be list of one) fetches associated numbers, either disjunct or conjunct with a certain feather
     //this would be compared to an internally held list of the numbers
-    
+    options = options || {};
+    var collection = options.collection;
+    var junctness = options.junctness;
+    //unused
+    var feather = options.feather;
+
     if(!__.isArray(array)) {
-      _arr = array;
-      array = [];
-      array[0] = _arr;
+      array = [].push(array);
     }
 
     var totalSubs = [];
 
+    // make sure theres no surprises?
     __.each(array, function(object){
         var number = object.ass 
         if(number == null) return;
         totalSubs.push(getSubPrimes(number));
     });
 
+    //does this solve duplications? might
     if(junctness === "disjunct" ) {
         totalSubs = __.union(totalSubs);
     } else {
         totalSubs = intersection(totalSubs);
     }
 
-    __.each(list, function(obj) {
+    var result = [];
 
+    var collection = db.collection(collection || collectionName);
+
+    //this needs to sort and be faster and not duplicate push
+    _.each(totalSubs, function(assNumber) {
+      MongoClient.connect("mongodb://localhost:27017/associateDB", function(err, db) {
+        if(err) return console.dir(err);
+
+        var stream = collection.find({_ass : {$mod: {assNumber, 0}} }).stream();
+
+        stream.on("data", function(item) {
+          result.push(item);
+        });
+
+        stream.on("end", function() {
+        });
+      });
     });
+
+    return result;
 };
 
 //what does this do??
