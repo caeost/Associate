@@ -170,7 +170,7 @@ exports.getAssociates = function(primal, array, options) {
     }, []);
 
     //does this solve duplications? might
-    if(junctness === "disjunct" ) {
+    if(object.junctness === "disjunct" ) {
         totalSubs = _.union(totalSubs);
     } else {
         totalSubs = intersection(totalSubs);
