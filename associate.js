@@ -1,18 +1,17 @@
-var __ = require("./underscore/underscore.js");
-var MongoClient = require('mongodb').MongoClient;
+var _ = require("./underscore/underscore.js");
 
 var currentPrimes = [];
     currentPrimes[2] = 0;
 
 var list = [];
 var size = 0;
-var threshold = 0;
+var threshold = .8;
 
 var getSubPrimes = function(number) {
     //operates on the algorithm whereby for all currently existing primes starting from 2 we divide as many times as
     //we can per prime and keep track of these in order to return a list of primes and their number of occurences
-    return __.reduce(currentPrimes, function(memo, occurence, prime){
-        if(occurence !== undefined) {
+    return _.reduce(currentPrimes, function(memo, occurence, prime){
+        if(occurence !== void 0) {
           var count = 0, breaker = true;
           while(breaker){
               var temp = number / prime;
@@ -23,19 +22,20 @@ var getSubPrimes = function(number) {
                   breaker = false;
               }
           }
-          if(count > 0) return memo[prime] = count;
+          if(count > 0) memo[prime] = count;
         }
         return memo;
     },[]);
 };
 
+exports.getSubPrimes = getSubPrimes;
 
-
+//very referentially unpure
 var createNewPrime = function() {
     //if necessary create a new larger prime to deal with new set, cache all primes for speed
     // current prime number
     var dumb = {}, 
-        prime = currentPrimes.length - 1;
+        prime = currentPrimes.length;
 
     // return true if NUM is prime
     var isPrime = function(num) {
@@ -51,159 +51,147 @@ var createNewPrime = function() {
         }
     };
 
-    prime++;
     while (!isPrime(prime)) {
         prime++;
     }
 
-    currentPrimes[prime] = count;
+    currentPrimes[prime] = 0;
     return prime;
 };
 
 //lifted and slightly modified from underscore
 var intersection = function(array) {
-    var rest = __.rest(array);
-    array = __.first(array);
-    return __.map(array, function(val, index) {
-        var runningTotal = 0;
-        __.each(rest, function(other) {
-          runningTotal += other[index];
-        });
-        if(runningTotal) {
-          return runningTotal;
-        }
-        return undefined;
+    var rest = _.rest(array);
+        array = _.first(array);
+
+    return _.map(array, function(val, index) {
+        var runningTotal = _.reduce(rest, function(memo, other) {
+          return memo += (other[index] || 0);
+        }, 0);
+        return runningTotal || void 0;
     });
 };
 
+//maybe optimize by applying math.max to array and seeing if the max is truthy?
 var allUndefined = function(array) {
-  return __.all(array, function(val) {
-    return val === undefined;
+  return _.all(array, function(val) {
+    return val === void 0;
   });
 };
 
-exports.associate =  function(array, hardness)  {
+exports.associate =  function(array, existingArray, hardness)  {
     //given array of numbers tests them for already existant common subprimes, amplifying those subprimes if existant
     //if not generates a whole new subprime to assign to the set, subprimes assigned or amplified MUST serve to
     //differntiate the set. Hardness is optional and allows external setting of how much linkage should be created
-    var totalSubs = [], mult = hardness || 1;
+    var totalSubs = [];
 
-    __.each(array, function(object){
-        var number = object.ass || 1;
-        if(!object.ass) {
-          size++;
-          return;
+    //seperate from getting confused with hardness better
+    if(!_.isArray(existingArray)) {
+      existingArray = [];
+    } else {
+      totalSubs = getSubPrimes(existingArray[0]);
+    }
+
+    hardness || (hardness = 1)
+
+    _.each(_.rest(array), function(object, key){
+        var number = existingArray[key];
+        if(number) {
+          var subs = getSubPrimes(number);
+          totalSubs = findPrimeIntersection(totalSubs, getSubPrimes(number));
         }
-        totalSubs.push(getSubPrimes(number));
-    });
-
-    totalSubs = intersection(totalSubs);
-
-    totalSubs = __.map(totalSubs, function(occurence, prime) {
-      var percentPrimeTotal = currentPrimes[prime];
-      var percentCurrentTotal = size / array.length;
-      var difference = percentPrimeTotal / percentCurrentTotal;
-      if(difference < threshold) {
-        return occurence;
-      }
-      return undefined;
     });
 
     if(!allUndefined(totalSubs)) {
-      mult = __.reduce(totalSubs, function(memo, occurence, prime){
-        if(occurence) {
-          return memo * prime;
+      var percentCurrentTotal = array.length / size;
+
+      totalSubs = _.map(totalSubs, function(occurence, prime) {
+        //hows this work again??
+        var percentPrimeTotal = currentPrimes[prime] / size;
+        var difference = percentCurrentTotal / percentPrimeTotal;
+        console.log("difference for " + prime + " : " + difference);
+        if(difference > threshold) {
+          return 1;
+        } else {
+          return void 0;
         }
-        return memo;
-      }, mult);
-    } else {
-        var newPrime = createNewPrime();
-        mult = newPrime * mult;
-        currentPrimes[newPrime] = array.length;
+      });
+
+      console.log("other totalsubs: " + totalSubs);
     }
 
-    return __.map(array, function(obj){
-                obj.ass = (obj.ass || 1) * mult;
-                return obj;
+    if(!allUndefined(totalSubs)) {
+      hardness = _.reduce(totalSubs, function(memo, occurence, prime){
+        if(occurence) {
+          return memo * prime;
+        } else {
+          return memo;
+        }
+      }, hardness);
+    } else {
+        var newPrime = createNewPrime();
+        hardness *= newPrime;
+        currentPrimes[newPrime] = array.length;
+        var newObjects = array.length - existingArray.length;
+        size += newObjects > 0 ? newObjects : 0;
+    }
+
+    return  _.map(array, function(_, key){
+              return (existingArray[key] || 1) * hardness;
             });
 };
 
-var collectionName = 'test';
-
-exports.setCollectionName = function(name) {
-    collectionName = name;
+var findPrimeIntersection = function(array1, array2) {
+  var result = [];
+  for(var i = 0, length = array1.length; i < length; i++) {
+    if(array1[i] && array2[i]) {
+      result[i] = array1[i];
+    }
+  }
+  return result;
 };
-
-var databaseName = 'associate';
-
-exports.setDatabaseName = function(name) {
-    databaseName = name;
-};
-
 
 //in progress
-exports.getAssociates = function(array, options) {
-    //given a list (can be list of one) fetches associated numbers, either disjunct or conjunct with a certain feather
-    //this would be compared to an internally held list of the numbers
+exports.getAssociates = function(primal, array, options) {
+    //given a single associative prime or a list of primes and a list (can be list of one) fetches associated numbers, either disjunct or conjunct with a certain feather
     options = options || {};
-    var collection = options.collection;
-    var junctness = options.junctness;
-    var database = options.database;
     //unused
-    var feather = options.feather;
+    var feather = options.feather,
+        totalSubs,
+        results = [];
 
-    if(!__.isArray(array)) {
+    if(!_.isArray(primal)) {
       array = [].push(array);
     }
 
-    var totalSubs = [];
-
-    // make sure theres no surprises?
-    __.each(array, function(object){
-        var number = object.ass 
-        if(number == null) return;
-        totalSubs.push(getSubPrimes(number));
-    });
+    //this is all messed up cant just push on
+    totalSubs = _.reduce(primal, function(memo, number){
+        return memo.push(getSubPrimes(number));
+    }, []);
 
     //does this solve duplications? might
     if(junctness === "disjunct" ) {
-        totalSubs = __.union(totalSubs);
+        totalSubs = _.union(totalSubs);
     } else {
         totalSubs = intersection(totalSubs);
     }
+    
+    var numberFunction = options.transformer || _.identity;
 
-    var result = [];
+    _.each(array, function(object) {
+      var objectPrimes = getSubPrimes(numberFunction(object));
+      var common = findPrimeIntersection(objectPrimes, totalSubs);
 
-    var collection = db.collection(collection || collectionName);
-
-    //this needs to sort and be faster and not duplicate push
-    _.each(totalSubs, function(assNumber) {
-      MongoClient.connect(database || databaseName || "mongodb://localhost:27017/associateDb", function(err, db) {
-        if(err) return console.dir(err);
-
-        var stream = collection.find({_ass : {$mod: [assNumber, 0]} }).stream();
-
-        stream.on("data", function(item) {
-          result.push(item);
-        });
-
-        stream.on("end", function() {
-        });
-      });
+      //rough... but it's ready
+      var totalValue = _.reduce(common, function(memo, number) {
+        return memo + number;
+      }, 0);
+      results.push({value: totalValue, object: object});
     });
 
-    return result;
-};
+    results.sort(function(a, b) {
+      return b.value - a.value
+    });
 
-//what does this do??
-exports.generate = function(object, hints, hardness){
-    if(hints) {
-        this.associate(hints + object, hardness || 1);
-    }
-    size++;
-    return object;
-};
-
-exports.test = function() {
-
+    return results;
 };
