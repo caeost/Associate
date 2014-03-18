@@ -95,12 +95,13 @@ exports.associate =  function(array, existingArray, hardness)  {
     hardness || (hardness = 1)
 
     _.each(_.rest(array), function(object, key){
-        var number = existingArray[key];
+        var number = existingArray[key + 1];
         if(number) {
           var subs = getSubPrimes(number);
           totalSubs = findPrimeIntersection(totalSubs, getSubPrimes(number));
         }
     });
+
 
     if(!allUndefined(totalSubs)) {
       var percentCurrentTotal = array.length / size;
@@ -109,16 +110,14 @@ exports.associate =  function(array, existingArray, hardness)  {
         //hows this work again??
         var percentPrimeTotal = currentPrimes[prime] / size;
         var difference = percentCurrentTotal / percentPrimeTotal;
-        console.log("difference for " + prime + " : " + difference);
         if(difference > threshold) {
           return 1;
         } else {
           return void 0;
         }
       });
-
-      console.log("other totalsubs: " + totalSubs);
     }
+
 
     if(!allUndefined(totalSubs)) {
       hardness = _.reduce(totalSubs, function(memo, occurence, prime){
@@ -136,7 +135,7 @@ exports.associate =  function(array, existingArray, hardness)  {
         size += newObjects > 0 ? newObjects : 0;
     }
 
-    return  _.map(array, function(_, key){
+    return _.map(array, function(_, key){
               return (existingArray[key] || 1) * hardness;
             });
 };
@@ -151,6 +150,24 @@ var findPrimeIntersection = function(array1, array2) {
   return result;
 };
 
+//make this better later...
+var combinePrimeArrays = function(array1, array2) {
+  var result = [];
+  for(var i = 0, length = array1.length; i < length; i++) {
+    result[i] = array1[i];
+  }
+  for(var i = 0, length = array2.length; i < length; i++) {
+    if(result[i]) {
+      result[i] += array2[i];
+    } else {
+      result[i] = array2[i];
+    }
+  }
+
+  return result;
+
+};
+
 //in progress
 exports.getAssociates = function(primal, array, options) {
     //given a single associative prime or a list of primes and a list (can be list of one) fetches associated numbers, either disjunct or conjunct with a certain feather
@@ -161,32 +178,35 @@ exports.getAssociates = function(primal, array, options) {
         results = [];
 
     if(!_.isArray(primal)) {
-      array = [].push(array);
+      var temp = [];
+      temp.push(primal);
+      primal = temp;
     }
 
     //this is all messed up cant just push on
     totalSubs = _.reduce(primal, function(memo, number){
-        return memo.push(getSubPrimes(number));
+        memo = combinePrimeArrays(memo, getSubPrimes(number));
+        return memo;
     }, []);
 
     //does this solve duplications? might
-    if(object.junctness === "disjunct" ) {
-        totalSubs = _.union(totalSubs);
-    } else {
-        totalSubs = intersection(totalSubs);
-    }
+    //if(options.junctness === "disjunct" ) {
+    //    totalSubs = _.union(totalSubs);
+    //} else {
+    //    totalSubs = intersection(totalSubs);
+    //}
     
     var numberFunction = options.transformer || _.identity;
 
     _.each(array, function(object) {
       var objectPrimes = getSubPrimes(numberFunction(object));
-      var common = findPrimeIntersection(objectPrimes, totalSubs);
 
+      var common = findPrimeIntersection(objectPrimes, totalSubs);
       //rough... but it's ready
       var totalValue = _.reduce(common, function(memo, number) {
         return memo + number;
       }, 0);
-      results.push({value: totalValue, object: object});
+      if(totalValue) results.push({value: totalValue, object: object});
     });
 
     results.sort(function(a, b) {
